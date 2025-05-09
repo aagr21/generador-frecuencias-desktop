@@ -29,8 +29,19 @@ def main(page: Page) -> None:
             page.update()
 
     def get_content_file(file_path: str) -> str:
-        # Eliminar los espacios del principio y final
-        return open(file_path, "r", encoding="utf-8").read().strip()
+        try:
+            # Intentar abrir con UTF-8 primero
+            with open(file_path, "r", encoding="utf-8") as f:
+                return f.read().strip()
+        except UnicodeDecodeError:
+            try:
+                # Intentar con una codificación alternativa
+                with open(file_path, "r", encoding="ISO-8859-1") as f:
+                    return f.read().strip()
+            except UnicodeDecodeError:
+                # Si también falla, probar con Windows-1252
+                with open(file_path, "r", encoding="windows-1252") as f:
+                    return f.read().strip()
 
     def verfiy_format(content_file: str) -> bool:
         lines = content_file.split("\n")
@@ -90,7 +101,7 @@ def main(page: Page) -> None:
             path += ".xlsx"
         wb.save(path)
         # Abrir el archivo excel
-        os.system(f"start excel {path}")
+        os.startfile(path)
 
     def pick_files_save(e: FilePickerResultEvent) -> None:
         if e.path == None or e.path == "":
@@ -161,7 +172,7 @@ def main(page: Page) -> None:
 
     button_generate = ElevatedButton(
         "Generar Frecuencias",
-        icon=icons.BAR_CHART,
+        icon=Icons.BAR_CHART,
         visible=False,
         on_click=lambda _: save_dialog.save_file(
             allowed_extensions=["xlsx"]
@@ -170,13 +181,13 @@ def main(page: Page) -> None:
 
     page.add(
         Container(
-            alignment=alignment.center,
+            alignment=Alignment(0, 0),
             content=Column(
                 alignment=MainAxisAlignment.CENTER,
                 controls=[
                     ElevatedButton(
                         "Cargar archivo de texto",
-                        icon=icons.UPLOAD_FILE,
+                        icon=Icons.UPLOAD_FILE,
                         on_click=lambda _: load_dialog.pick_files(
                             allowed_extensions=["txt"]
                         ),
